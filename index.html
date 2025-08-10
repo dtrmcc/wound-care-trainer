@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wound Care Communication Training</title>
+    <title>護理學生傷口護理訓練 - Nursing Wound Care Training</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -30,6 +30,13 @@
         .header h1 {
             color: #2c3e50;
             margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .header h2 {
+            color: #34495e;
+            margin-bottom: 15px;
+            font-size: 18px;
         }
         
         .scenario-info {
@@ -38,6 +45,14 @@
             border-radius: 10px;
             margin-bottom: 25px;
             border-left: 4px solid #3498db;
+        }
+        
+        .patient-info {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #27ae60;
         }
         
         .controls {
@@ -125,24 +140,52 @@
             border-radius: 10px;
             padding: 20px;
             margin: 20px 0;
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
         }
         
         .message {
-            margin: 10px 0;
-            padding: 10px;
+            margin: 15px 0;
+            padding: 15px;
             border-radius: 8px;
+            line-height: 1.5;
         }
         
         .student-message {
             background: #e3f2fd;
             margin-left: 20px;
+            border-left: 4px solid #2196f3;
         }
         
         .patient-message {
             background: #fff3e0;
             margin-right: 20px;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .message-header {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        
+        .message-content {
+            font-size: 16px;
+        }
+        
+        .cantonese-text {
+            color: #c0392b;
+            font-weight: 500;
+        }
+        
+        .procedure-notes {
+            background: #f0f8ff;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+            font-style: italic;
+            color: #34495e;
+            border-left: 3px solid #3498db;
         }
         
         .download-section {
@@ -151,10 +194,6 @@
             padding: 20px;
             background: #f8f9fa;
             border-radius: 10px;
-        }
-        
-        .patient-audio {
-            margin: 10px 0;
         }
         
         .loading-spinner {
@@ -171,42 +210,79 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .language-toggle {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .language-toggle button {
+            margin: 0 10px;
+            padding: 8px 16px;
+            border: 2px solid #3498db;
+            background: white;
+            color: #3498db;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .language-toggle button.active {
+            background: #3498db;
+            color: white;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏥 Wound Care Communication Training</h1>
-            <p>Practice communicating with patients during wound care procedures</p>
+            <h1>🏥 護理學生傷口護理訓練系統</h1>
+            <h2>Nursing Student Wound Care Training System</h2>
+            <p>Practice realistic patient communication in Cantonese healthcare settings</p>
         </div>
         
         <div class="scenario-info">
-            <h3>📋 Scenario: Elderly Cantonese Patient</h3>
-            <p><strong>Patient:</strong> 78-year-old Cantonese-speaking patient with a leg wound</p>
-            <p><strong>Your task:</strong> Perform wound cleaning while maintaining clear, compassionate communication</p>
-            <p><strong>Focus:</strong> Explain procedures, provide reassurance, respond to patient concerns</p>
+            <h3>📋 訓練場景 Training Scenario</h3>
+            <div class="patient-info">
+                <h4>👨 病人資料 Patient Information:</h4>
+                <p><strong>姓名 Name:</strong> 文力新先生 (Mr. Man Lik Sun)</p>
+                <p><strong>HN Number:</strong> 23332099</p>
+                <p><strong>年齡 Age:</strong> 65歲</p>
+                <p><strong>語言 Language:</strong> 廣東話 (Cantonese)</p>
+                <p><strong>病情 Condition:</strong> 腿部傷口需要清洗及換藥 (Leg wound requiring cleaning and dressing)</p>
+            </div>
+            <p><strong>你的角色 Your Role:</strong> XX大學護理學生何同學 (Nursing Student Ho from XX University)</p>
+            <p><strong>任務 Task:</strong> 進行傷口護理程序並與病人保持良好溝通</p>
+            <p><strong>重點 Focus:</strong> 身份確認、程序解釋、病人安撫、專業溝通</p>
+        </div>
+
+        <div class="language-toggle">
+            <label>語音識別語言 Speech Recognition Language:</label><br>
+            <button id="langCanto" class="active">廣東話 Cantonese</button>
+            <button id="langEng">English</button>
+            <button id="langMand">普通話 Mandarin</button>
         </div>
         
         <div id="status" class="status loading">
-            <span class="loading-spinner"></span> Loading AI models... This may take 30-60 seconds on first visit
+            <span class="loading-spinner"></span> 正在載入語音識別系統... Loading speech recognition system...
         </div>
         
         <div class="controls">
-            <button id="startBtn" class="btn btn-primary" disabled>🎙️ Start Session</button>
-            <button id="stopBtn" class="btn btn-danger" disabled>⏹️ Stop Session</button>
+            <button id="startBtn" class="btn btn-primary" disabled>🎙️ 開始訓練 Start Training</button>
+            <button id="stopBtn" class="btn btn-danger" disabled>⏹️ 結束訓練 Stop Training</button>
         </div>
         
         <div id="timer" class="timer">00:00</div>
         
         <div id="conversation" class="conversation" style="display: none;">
-            <h4>💬 Session Conversation:</h4>
+            <h4>💬 對話記錄 Session Conversation:</h4>
             <div id="messages"></div>
         </div>
         
         <div id="downloadSection" class="download-section" style="display: none;">
-            <h4>📥 Session Recording</h4>
-            <p>Your training session has been recorded for analysis.</p>
-            <button id="downloadBtn" class="btn btn-primary">Download Recording</button>
+            <h4>📥 訓練記錄 Session Recording</h4>
+            <p>你的訓練對話已被記錄以供分析 Your training session has been recorded for analysis.</p>
+            <button id="downloadBtn" class="btn btn-primary">下載錄音 Download Recording</button>
         </div>
     </div>
 
@@ -220,33 +296,58 @@
         let isRecording = false;
         let speechSynth = window.speechSynthesis;
         let currentStep = 0;
+        let selectedLanguage = 'zh-HK';
+        let conversationHistory = [];
         
-        // Wound care procedure steps and patient responses
-        const procedureSteps = [
+        // Realistic nursing procedure flow with Cantonese responses
+        const nursingProcedure = [
             {
-                trigger: "start",
-                patientResponse: "Aiya... my leg very pain! What you doing? I scared!",
-                patientChinese: "我很痛啊！你要做什么？"
+                phase: "introduction",
+                expectedInput: ["我係", "護士學生", "何", "入嚟"],
+                patientResponse: "好啊，入嚟啦。你叫咩名呀？",
+                notes: "Student should introduce themselves and ask permission to enter"
             },
             {
-                trigger: "clean",
-                patientResponse: "Wah! So cold! Why you use this water? Very uncomfortable!",
-                patientChinese: "好冷啊！为什么用这个水？"
+                phase: "identification",
+                expectedInput: ["文生", "對名", "文力新", "23332099"],
+                patientResponse: "係啊，我係文力新。你要做咩呀？",
+                notes: "Patient identification verification completed"
             },
             {
-                trigger: "explain",
-                patientResponse: "Oh... I understand small small. But still scared. You be gentle, okay?",
-                patientChinese: "我明白一点点，但是还是怕怕。"
+                phase: "explanation",
+                expectedInput: ["洗傷口", "換藥", "唔好郁"],
+                patientResponse: "洗傷口？會唔會好痛㗎？我有啲驚呀。",
+                notes: "Student explains wound care procedure"
             },
             {
-                trigger: "reassure",
-                patientResponse: "Okay okay... I trust you. But tell me before you do something, ah?",
-                patientChinese: "好啦，我相信你。"
+                phase: "positioning",
+                expectedInput: ["舒服", "姿勢", "保持"],
+                patientResponse: "好啦，我盡量唔郁。不過真係有啲緊張。",
+                notes: "Actions: Organize quilt, position patient comfortably, prepare equipment"
             },
             {
-                trigger: "bandage",
-                patientResponse: "This one better. Not so pain now. Thank you, nurse. When I come back?",
-                patientChinese: "这样好一点了，谢谢护士。"
+                phase: "procedure",
+                expectedInput: ["而家", "開始", "洗", "清潔"],
+                patientResponse: "嗱！有啲涼呀！你小心啲啦。",
+                notes: "Wound cleaning in progress - patient expresses mild discomfort"
+            },
+            {
+                phase: "reassurance",
+                expectedInput: ["唔舒服", "出聲", "隨時", "痛"],
+                patientResponse: "好啦，少少痛係咁㗎啦。你做緊咩呀？",
+                notes: "Student provides reassurance during procedure"
+            },
+            {
+                phase: "dressing",
+                expectedInput: ["埋", "傷口", "包紮"],
+                patientResponse: "而家好啲喇，唔係咁痛。幾時要換㗎？",
+                notes: "Wound dressing application"
+            },
+            {
+                phase: "completion",
+                expectedInput: ["執嘢", "轉頭", "返嚟睇"],
+                patientResponse: "好啊，唔該晒你呀。記住轉頭返嚟睇我啦。",
+                notes: "Tidy patient's clothes, lower bed, organize equipment"
             }
         ];
         
@@ -259,19 +360,39 @@
         const messagesEl = document.getElementById('messages');
         const downloadSection = document.getElementById('downloadSection');
         const downloadBtn = document.getElementById('downloadBtn');
+        const langButtons = {
+            canto: document.getElementById('langCanto'),
+            eng: document.getElementById('langEng'),
+            mand: document.getElementById('langMand')
+        };
+        
+        // Language selection
+        langButtons.canto.addEventListener('click', () => setLanguage('zh-HK', 'canto'));
+        langButtons.eng.addEventListener('click', () => setLanguage('en-US', 'eng'));
+        langButtons.mand.addEventListener('click', () => setLanguage('zh-CN', 'mand'));
+        
+        function setLanguage(lang, buttonKey) {
+            selectedLanguage = lang;
+            Object.values(langButtons).forEach(btn => btn.classList.remove('active'));
+            langButtons[buttonKey].classList.add('active');
+            
+            if (recognition) {
+                recognition.lang = selectedLanguage;
+            }
+        }
         
         // Initialize the application
         async function init() {
             try {
-                updateStatus('Loading speech recognition...', 'loading');
+                updateStatus('正在載入語音識別... Loading speech recognition...', 'loading');
                 await initSpeechRecognition();
                 
-                updateStatus('Ready to start training session!', 'ready');
+                updateStatus('系統準備就緒！可以開始訓練 System ready! You can start training', 'ready');
                 startBtn.disabled = false;
                 
             } catch (error) {
                 console.error('Initialization error:', error);
-                updateStatus('Error loading. Please refresh and try again.', 'error');
+                updateStatus('載入錯誤，請重新整理頁面 Error loading. Please refresh and try again.', 'error');
             }
         }
         
@@ -287,78 +408,142 @@
             
             recognition.continuous = true;
             recognition.interimResults = true;
-            recognition.lang = 'en-US';
+            recognition.lang = selectedLanguage;
             
             recognition.onresult = function(event) {
                 const result = event.results[event.results.length - 1];
                 if (result.isFinal) {
                     const transcript = result[0].transcript.trim();
                     addMessage('student', transcript);
+                    conversationHistory.push({role: 'student', content: transcript});
                     processStudentInput(transcript);
                 }
             };
             
             recognition.onerror = function(event) {
                 console.log('Speech recognition error:', event.error);
+                if (event.error === 'no-speech') {
+                    // Continue listening
+                    if (isRecording) {
+                        setTimeout(() => {
+                            try {
+                                recognition.start();
+                            } catch (e) {
+                                console.log('Recognition restart failed:', e);
+                            }
+                        }, 1000);
+                    }
+                }
+            };
+            
+            recognition.onend = function() {
+                if (isRecording) {
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        console.log('Recognition restart failed:', e);
+                    }
+                }
             };
         }
         
-        // Process student input and generate patient response
+        // Process student input and generate appropriate patient response
         function processStudentInput(transcript) {
             const lowerTranscript = transcript.toLowerCase();
+            let matchedPhase = null;
+            let response = null;
             
-            // Simple keyword matching for demo
-            let responseStep = null;
-            
-            if (lowerTranscript.includes('clean') || lowerTranscript.includes('wash')) {
-                responseStep = procedureSteps[1];
-            } else if (lowerTranscript.includes('explain') || lowerTranscript.includes('tell') || lowerTranscript.includes('going to')) {
-                responseStep = procedureSteps[2];
-            } else if (lowerTranscript.includes('okay') || lowerTranscript.includes('fine') || lowerTranscript.includes('gentle')) {
-                responseStep = procedureSteps[3];
-            } else if (lowerTranscript.includes('bandage') || lowerTranscript.includes('dress')) {
-                responseStep = procedureSteps[4];
-            } else {
-                // Default response
-                responseStep = {
-                    patientResponse: "Mmm? I don't understand. Can you speak slowly? 我不明白。",
-                    patientChinese: ""
-                };
+            // Find the most appropriate response based on current conversation context
+            for (let i = 0; i < nursingProcedure.length; i++) {
+                const phase = nursingProcedure[i];
+                
+                // Check if any expected keywords are present
+                const hasKeywords = phase.expectedInput.some(keyword => 
+                    lowerTranscript.includes(keyword.toLowerCase())
+                );
+                
+                if (hasKeywords) {
+                    matchedPhase = phase;
+                    response = phase.patientResponse;
+                    break;
+                }
             }
             
-            // Add patient response
+            // Fallback responses for unmatched input
+            if (!response) {
+                const fallbackResponses = [
+                    "咩話？我聽唔清楚呀。",
+                    "你可唔可以講慢啲？",
+                    "我唔係好明白你講咩。",
+                    "你可以再講一次嗎？"
+                ];
+                response = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+            }
+            
+            // Add patient response with delay for realism
             setTimeout(() => {
-                addMessage('patient', responseStep.patientResponse);
-                speakPatientResponse(responseStep.patientResponse);
-            }, 1000);
+                addMessage('patient', response, matchedPhase?.notes);
+                conversationHistory.push({role: 'patient', content: response});
+                speakPatientResponse(response);
+            }, 1500 + Math.random() * 1000); // Random delay between 1.5-2.5 seconds
         }
         
         // Text-to-speech for patient responses
         function speakPatientResponse(text) {
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 0.8;
-            utterance.pitch = 1.2;
+            utterance.rate = 0.7;
+            utterance.pitch = 1.1;
+            utterance.lang = 'zh-HK'; // Cantonese
             
-            // Try to use a voice that sounds different from default
+            // Try to find a Cantonese voice
             const voices = speechSynth.getVoices();
-            const femaleVoice = voices.find(voice => 
-                voice.name.includes('Female') || 
-                voice.name.includes('Woman') ||
-                voice.gender === 'female'
+            const cantoneseVoice = voices.find(voice => 
+                voice.lang.includes('zh-HK') || 
+                voice.lang.includes('yue') ||
+                voice.name.includes('Hong Kong')
             );
             
-            if (femaleVoice) {
-                utterance.voice = femaleVoice;
+            if (cantoneseVoice) {
+                utterance.voice = cantoneseVoice;
+            } else {
+                // Fallback to any Chinese voice
+                const chineseVoice = voices.find(voice => 
+                    voice.lang.includes('zh') || 
+                    voice.name.includes('Chinese')
+                );
+                if (chineseVoice) {
+                    utterance.voice = chineseVoice;
+                }
             }
             
             speechSynth.speak(utterance);
         }
         
         // Add message to conversation
-        function addMessage(speaker, text) {
+        function addMessage(speaker, text, notes = null) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${speaker}-message`;
-            messageDiv.innerHTML = `<strong>${speaker === 'student' ? '👩‍⚕️ Student' : '👵 Patient'}:</strong> ${text}`;
+            
+            const header = document.createElement('div');
+            header.className = 'message-header';
+            header.innerHTML = speaker === 'student' ? 
+                '👩‍⚕️ 護理學生何同學 Student Ho' : 
+                '👨 病人文先生 Patient Mr. Man';
+            
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            content.innerHTML = `<span class="cantonese-text">${text}</span>`;
+            
+            messageDiv.appendChild(header);
+            messageDiv.appendChild(content);
+            
+            if (notes && speaker === 'student') {
+                const notesDiv = document.createElement('div');
+                notesDiv.className = 'procedure-notes';
+                notesDiv.textContent = `📝 ${notes}`;
+                messageDiv.appendChild(notesDiv);
+            }
+            
             messagesEl.appendChild(messageDiv);
             messagesEl.scrollTop = messagesEl.scrollHeight;
         }
@@ -369,6 +554,7 @@
                 isRecording = true;
                 currentStep = 0;
                 audioChunks = [];
+                conversationHistory = [];
                 
                 // Clear previous conversation
                 messagesEl.innerHTML = '';
@@ -396,19 +582,19 @@
                 sessionStartTime = Date.now();
                 startTimer();
                 
-                // Initial patient response
+                // Initial scenario setup message
                 setTimeout(() => {
-                    addMessage('patient', procedureSteps[0].patientResponse);
-                    speakPatientResponse(procedureSteps[0].patientResponse);
-                }, 2000);
+                    addMessage('patient', "呀？有人嚟喇。邊個呀？", "Patient notices someone approaching the room");
+                    speakPatientResponse("呀？有人嚟喇。邊個呀？");
+                }, 3000);
                 
-                updateStatus('🎙️ Recording in progress... Speak to the patient', 'recording');
+                updateStatus('🎙️ 錄音進行中... 開始與病人對話 Recording in progress... Start talking to the patient', 'recording');
                 startBtn.disabled = true;
                 stopBtn.disabled = false;
                 
             } catch (error) {
                 console.error('Error starting session:', error);
-                alert('Error accessing microphone. Please check permissions.');
+                alert('無法使用麥克風，請檢查權限設定 Error accessing microphone. Please check permissions.');
             }
         }
         
@@ -426,7 +612,7 @@
             
             stopTimer();
             
-            updateStatus('Session completed! Review your recording below.', 'ready');
+            updateStatus('訓練完成！請查看下方錄音 Session completed! Review your recording below.', 'ready');
             startBtn.disabled = false;
             stopBtn.disabled = true;
             
@@ -455,7 +641,7 @@
             downloadBtn.onclick = function() {
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `wound-care-session-${new Date().toISOString().slice(0, 19)}.wav`;
+                a.download = `nursing-training-session-${new Date().toISOString().slice(0, 19)}.wav`;
                 a.click();
             };
         }
@@ -470,13 +656,13 @@
         startBtn.addEventListener('click', startSession);
         stopBtn.addEventListener('click', stopSession);
         
+        // Load voices when available
+        speechSynth.onvoiceschanged = function() {
+            console.log('Available voices:', speechSynth.getVoices().map(v => `${v.name} (${v.lang})`));
+        };
+        
         // Initialize on page load
         init();
-        
-        // Add initial greeting when voices are loaded
-        speechSynth.onvoiceschanged = function() {
-            // Voices are now loaded
-        };
     </script>
 </body>
 </html>
