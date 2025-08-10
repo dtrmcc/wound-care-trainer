@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wound Care Communication Training</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .scenario-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+        
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status.ready {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.recording {
+            background: #f8d7da;
+            color: #721c24;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .timer {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            color: #2c3e50;
+            margin: 20px 0;
+        }
+        
+        .conversation {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .student-message {
+            background: #e3f2fd;
+            margin-left: 20px;
+        }
+        
+        .patient-message {
+            background: #fff3e0;
+            margin-right: 20px;
+        }
+        
+        .download-section {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .patient-audio {
+            margin: 10px 0;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Wound Care Communication Training</h1>
+            <p>Practice communicating with patients during wound care procedures</p>
+        </div>
+        
+        <div class="scenario-info">
+            <h3>📋 Scenario: Elderly Cantonese Patient</h3>
+            <p><strong>Patient:</strong> 78-year-old Cantonese-speaking patient with a leg wound</p>
+            <p><strong>Your task:</strong> Perform wound cleaning while maintaining clear, compassionate communication</p>
+            <p><strong>Focus:</strong> Explain procedures, provide reassurance, respond to patient concerns</p>
+        </div>
+        
+        <div id="status" class="status loading">
+            <span class="loading-spinner"></span> Loading AI models... This may take 30-60 seconds on first visit
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn" class="btn btn-primary" disabled>🎙️ Start Session</button>
+            <button id="stopBtn" class="btn btn-danger" disabled>⏹️ Stop Session</button>
+        </div>
+        
+        <div id="timer" class="timer">00:00</div>
+        
+        <div id="conversation" class="conversation" style="display: none;">
+            <h4>💬 Session Conversation:</h4>
+            <div id="messages"></div>
+        </div>
+        
+        <div id="downloadSection" class="download-section" style="display: none;">
+            <h4>📥 Session Recording</h4>
+            <p>Your training session has been recorded for analysis.</p>
+            <button id="downloadBtn" class="btn btn-primary">Download Recording</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Global variables
+        let mediaRecorder;
+        let audioChunks = [];
+        let recognition;
+        let sessionStartTime;
+        let timerInterval;
+        let isRecording = false;
+        let speechSynth = window.speechSynthesis;
+        let currentStep = 0;
+        
+        // Wound care procedure steps and patient responses
+        const procedureSteps = [
+            {
+                trigger: "start",
+                patientResponse: "Aiya... my leg very pain! What you doing? I scared!",
+                patientChinese: "我很痛啊！你要做什么？"
+            },
+            {
+                trigger: "clean",
+                patientResponse: "Wah! So cold! Why you use this water? Very uncomfortable!",
+                patientChinese: "好冷啊！为什么用这个水？"
+            },
+            {
+                trigger: "explain",
+                patientResponse: "Oh... I understand small small. But still scared. You be gentle, okay?",
+                patientChinese: "我明白一点点，但是还是怕怕。"
+            },
+            {
+                trigger: "reassure",
+                patientResponse: "Okay okay... I trust you. But tell me before you do something, ah?",
+                patientChinese: "好啦，我相信你。"
+            },
+            {
+                trigger: "bandage",
+                patientResponse: "This one better. Not so pain now. Thank you, nurse. When I come back?",
+                patientChinese: "这样好一点了，谢谢护士。"
+            }
+        ];
+        
+        // DOM elements
+        const statusEl = document.getElementById('status');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const timerEl = document.getElementById('timer');
+        const conversationEl = document.getElementById('conversation');
+        const messagesEl = document.getElementById('messages');
+        const downloadSection = document.getElementById('downloadSection');
+        const downloadBtn = document.getElementById('downloadBtn');
+        
+        // Initialize the application
+        async function init() {
+            try {
+                updateStatus('Loading speech recognition...', 'loading');
+                await initSpeechRecognition();
+                
+                updateStatus('Ready to start training session!', 'ready');
+                startBtn.disabled = false;
+                
+            } catch (error) {
+                console.error('Initialization error:', error);
+                updateStatus('Error loading. Please refresh and try again.', 'error');
+            }
+        }
+        
+        // Initialize speech recognition
+        async function initSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+            } else if ('SpeechRecognition' in window) {
+                recognition = new SpeechRecognition();
+            } else {
+                throw new Error('Speech recognition not supported');
+            }
+            
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+            
+            recognition.onresult = function(event) {
+                const result = event.results[event.results.length - 1];
+                if (result.isFinal) {
+                    const transcript = result[0].transcript.trim();
+                    addMessage('student', transcript);
+                    processStudentInput(transcript);
+                }
+            };
+            
+            recognition.onerror = function(event) {
+                console.log('Speech recognition error:', event.error);
+            };
+        }
+        
+        // Process student input and generate patient response
+        function processStudentInput(transcript) {
+            const lowerTranscript = transcript.toLowerCase();
+            
+            // Simple keyword matching for demo
+            let responseStep = null;
+            
+            if (lowerTranscript.includes('clean') || lowerTranscript.includes('wash')) {
+                responseStep = procedureSteps[1];
+            } else if (lowerTranscript.includes('explain') || lowerTranscript.includes('tell') || lowerTranscript.includes('going to')) {
+                responseStep = procedureSteps[2];
+            } else if (lowerTranscript.includes('okay') || lowerTranscript.includes('fine') || lowerTranscript.includes('gentle')) {
+                responseStep = procedureSteps[3];
+            } else if (lowerTranscript.includes('bandage') || lowerTranscript.includes('dress')) {
+                responseStep = procedureSteps[4];
+            } else {
+                // Default response
+                responseStep = {
+                    patientResponse: "Mmm? I don't understand. Can you speak slowly? 我不明白。",
+                    patientChinese: ""
+                };
+            }
+            
+            // Add patient response
+            setTimeout(() => {
+                addMessage('patient', responseStep.patientResponse);
+                speakPatientResponse(responseStep.patientResponse);
+            }, 1000);
+        }
+        
+        // Text-to-speech for patient responses
+        function speakPatientResponse(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.8;
+            utterance.pitch = 1.2;
+            
+            // Try to use a voice that sounds different from default
+            const voices = speechSynth.getVoices();
+            const femaleVoice = voices.find(voice => 
+                voice.name.includes('Female') || 
+                voice.name.includes('Woman') ||
+                voice.gender === 'female'
+            );
+            
+            if (femaleVoice) {
+                utterance.voice = femaleVoice;
+            }
+            
+            speechSynth.speak(utterance);
+        }
+        
+        // Add message to conversation
+        function addMessage(speaker, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${speaker}-message`;
+            messageDiv.innerHTML = `<strong>${speaker === 'student' ? '👩‍⚕️ Student' : '👵 Patient'}:</strong> ${text}`;
+            messagesEl.appendChild(messageDiv);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+        
+        // Start training session
+        async function startSession() {
+            try {
+                isRecording = true;
+                currentStep = 0;
+                audioChunks = [];
+                
+                // Clear previous conversation
+                messagesEl.innerHTML = '';
+                conversationEl.style.display = 'block';
+                
+                // Start audio recording
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                
+                mediaRecorder.ondataavailable = function(event) {
+                    audioChunks.push(event.data);
+                };
+                
+                mediaRecorder.onstop = function() {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    createDownloadLink(audioBlob);
+                };
+                
+                mediaRecorder.start();
+                
+                // Start speech recognition
+                recognition.start();
+                
+                // Start timer
+                sessionStartTime = Date.now();
+                startTimer();
+                
+                // Initial patient response
+                setTimeout(() => {
+                    addMessage('patient', procedureSteps[0].patientResponse);
+                    speakPatientResponse(procedureSteps[0].patientResponse);
+                }, 2000);
+                
+                updateStatus('🎙️ Recording in progress... Speak to the patient', 'recording');
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                
+            } catch (error) {
+                console.error('Error starting session:', error);
+                alert('Error accessing microphone. Please check permissions.');
+            }
+        }
+        
+        // Stop training session
+        function stopSession() {
+            isRecording = false;
+            
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            
+            if (recognition) {
+                recognition.stop();
+            }
+            
+            stopTimer();
+            
+            updateStatus('Session completed! Review your recording below.', 'ready');
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            
+            downloadSection.style.display = 'block';
+        }
+        
+        // Timer functions
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const elapsed = Date.now() - sessionStartTime;
+                const minutes = Math.floor(elapsed / 60000);
+                const seconds = Math.floor((elapsed % 60000) / 1000);
+                timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+        
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+        }
+        
+        // Create download link for recording
+        function createDownloadLink(audioBlob) {
+            const url = URL.createObjectURL(audioBlob);
+            downloadBtn.onclick = function() {
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `wound-care-session-${new Date().toISOString().slice(0, 19)}.wav`;
+                a.click();
+            };
+        }
+        
+        // Update status display
+        function updateStatus(message, type) {
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+        
+        // Event listeners
+        startBtn.addEventListener('click', startSession);
+        stopBtn.addEventListener('click', stopSession);
+        
+        // Initialize on page load
+        init();
+        
+        // Add initial greeting when voices are loaded
+        speechSynth.onvoiceschanged = function() {
+            // Voices are now loaded
+        };
+    </script>
+</body>
+</html>
